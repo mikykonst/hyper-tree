@@ -1,14 +1,14 @@
 /* eslint-disable no-use-before-define */
 import { TreeView, TreeNode } from './node'
 
-interface ITreeItem {
+interface ITreeItem<T> {
     loadedData?: TreeNode[]
-    instance: TreeView
+    instance: TreeView<T>
     handlers: IHandlers
 }
 
-interface ITrees {
-    [key: string]: ITreeItem
+interface ITrees<T> {
+    [key: string]: ITreeItem<T>
 }
 
 type Handler = (...args: any[]) => any
@@ -17,8 +17,8 @@ interface IHandlers {
     [key: string]: Handler
 }
 
-export class TreeHandlers {
-    trees: ITrees
+export class TreeHandlers<T> {
+    trees: ITrees<T>
 
     constructor() {
         this.trees = {}
@@ -28,7 +28,7 @@ export class TreeHandlers {
         return Object.keys(this.trees)
     }
 
-    safeUpdate(id: string, tree: TreeView): TreeHandlers {
+    safeUpdate(id: string, tree: TreeView<T>): TreeHandlers<T> {
         if (this.trees[id]) {
             this.trees[id].instance = tree
             this.trees[id].handlers = {}
@@ -40,19 +40,21 @@ export class TreeHandlers {
         }
         return this
     }
-    remove(id: string): TreeHandlers {
+
+    remove(id: string): TreeHandlers<T> {
         const { [id]: _, ...trees } = this.trees
         this.trees = trees
         return this
     }
 
-    safeUpdateHandler(treeId: string, handlerName: string, handler: Handler): TreeHandlers {
+    safeUpdateHandler(treeId: string, handlerName: string, handler: Handler): TreeHandlers<T> {
         if (this.trees[treeId]) {
             this.trees[treeId].handlers = { ...this.trees[treeId].handlers, [handlerName]: handler }
         }
         return this
     }
-    removeHandler(treeId: string, handlerName: string): TreeHandlers {
+
+    removeHandler(treeId: string, handlerName: string): TreeHandlers<T> {
         if (this.trees[treeId]) {
             const { [handlerName]: _, ...handlers } = this.trees[treeId].handlers
             this.trees[treeId].handlers = handlers

@@ -1,565 +1,521 @@
-/* eslint-disable no-use-before-define */
-export interface IDataOptions {
-    async: boolean
-    childrenCount: number
-    childrenKey: string
-    currentChilrenCount: number
-    hasChildren: boolean
-    idKey: string
-    leaf: boolean
-    loading: boolean
-    opened: boolean
-    parent?: TreeNode
-    path: string
-    root: boolean
-    selected: boolean
-    dropContainer: string | boolean
-    reactKey: string
-}
-
-export interface IData {
-    [key: string]: any
-}
-
-export interface ITreeNode {
-    readonly id: number | string
-    data: IData
-    options: IDataOptions
-    children?: TreeNode[]
-}
-
-export type IFilter = (node: TreeNode) => boolean
-export type ISort = (node: TreeNode, siblingNode: TreeNode) => -1 | 0 | 1
-
-export interface Options {
-    filter?: IFilter
-    sort: ISort
-    defaultOpened?: boolean | number[]
-    enhance?: boolean
-    idKey: string
-    childrenKey: string
-}
-
-export type InsertChildType = 'first' | 'last'
-export type InsertSiblingType = 'before' | 'after'
-export type RemoveType = 'start' | 'end'
+import { IData, IDataOptions, Options, InsertChildType, ITreeNode, InsertSiblingType, RemoveType } from '../types/index'
 
 export class TreeNode implements ITreeNode {
-    public readonly id: number | string
-    data: IData
-    options: IDataOptions
-    children?: TreeNode[]
-    asyncNode: boolean
-    asyncDataLoaded: boolean
+  public readonly id: number | string
+  data: IData
+  options: IDataOptions
+  children?: TreeNode[]
+  asyncNode: boolean
+  asyncDataLoaded: boolean
 
-    constructor(data: IData, options: IDataOptions, children?: TreeNode[]) {
-        this.data = data
-        this.asyncNode = !!data.getChildren
-        this.asyncDataLoaded = false
-        this.id = data[options.idKey]
-        this.options = options
-        this.children = children
-    }
+  constructor(data: IData, options: IDataOptions, children?: TreeNode[]) {
+    this.data = data
+    this.asyncNode = !!data.getChildren
+    this.asyncDataLoaded = false
+    this.id = data[options.idKey]
+    this.options = options
+    this.children = children
+  }
 
-    getData() {
-        return this.data
-    }
+  getData() {
+    return this.data
+  }
 
-    setData(data: IData) {
-        this.data = data
-    }
+  setData(data: IData) {
+    this.data = data
+  }
 
-    getChildren() {
-        return this.children || []
-    }
+  getChildren() {
+    return this.children || []
+  }
 
-    setNodeChildren(children: TreeNode[], type?: InsertChildType, reset?: boolean): TreeNode[] {
-        if (!this.hasChildren() || reset) {
-            this.setChildren(this.setNodesParent(children, this))
-            return this.getChildren()
-        }
-        if (type === 'first') {
-            this.setChildren(this.setNodesParent([...children, ...(this.children || [])], this))
-            return this.getChildren()
-        }
-        this.setChildren(this.setNodesParent([...(this.children || []), ...children], this))
-        return this.getChildren()
+  setNodeChildren(children: TreeNode[], type?: InsertChildType, reset?: boolean): TreeNode[] {
+    if (!this.hasChildren() || reset) {
+      this.setChildren(this.setNodesParent(children, this))
+      return this.getChildren()
     }
+    if (type === 'first') {
+      this.setChildren(this.setNodesParent([ ...children, ...(this.children || []) ], this))
+      return this.getChildren()
+    }
+    this.setChildren(this.setNodesParent([ ...(this.children || []), ...children ], this))
+    return this.getChildren()
+  }
 
-    removeChild(node: TreeNode) {
-        this.setChildren(this.getChildren().filter((child: TreeNode) => child.id !== node.id))
-    }
+  removeChild(node: TreeNode) {
+    this.setChildren(this.getChildren().filter((child: TreeNode) => child.id !== node.id))
+  }
 
-    setChildren(children: TreeNode[]) {
-        this.children = this.setNodesParent(children, this)
-    }
+  setChildren(children: TreeNode[]) {
+    this.children = this.setNodesParent(children, this)
+  }
 
-    hasChildren() {
-        return this.children && this.children.length !== 0
-    }
+  hasChildren() {
+    return this.children && this.children.length !== 0
+  }
 
-    getParent(): TreeNode | undefined {
-        return this.options.parent
-    }
+  getParent(): TreeNode | undefined {
+    return this.options.parent
+  }
 
-    setParent(parent?: TreeNode) {
-        this.options.parent = parent
-    }
+  setParent(parent?: TreeNode) {
+    this.options.parent = parent
+  }
 
-    setNodesParent(nodes: TreeNode[], parent?: TreeNode) {
-        return nodes.map((node: TreeNode) => {
-            node.setParent(parent)
-            return node
-        })
-    }
+  setNodesParent(nodes: TreeNode[], parent?: TreeNode) {
+    return nodes.map((node: TreeNode) => {
+      node.setParent(parent)
+      return node
+    })
+  }
 
-    setChildrenCount(count: number) {
-        this.options.childrenCount = count
-    }
+  setChildrenCount(count: number) {
+    this.options.childrenCount = count
+  }
 
-    getFirstChild() {
-        return this.getChildren()[0] || null
-    }
+  getFirstChild() {
+    return this.getChildren()[0] || null
+  }
 
-    getLastChild() {
-        return this.children && this.children.length !== 0 ? this.children[this.children.length - 1] : null
-    }
+  getLastChild() {
+    return this.children && this.children.length !== 0 ? this.children[this.children.length - 1] : null
+  }
 
-    setOpened(opened?: boolean) {
-        this.options.opened = opened || false
-    }
+  setOpened(opened?: boolean) {
+    this.options.opened = opened || false
+  }
 
-    isOpened() {
-        return this.options.opened
-    }
+  isOpened() {
+    return this.options.opened
+  }
 
-    setLoading(loading?: boolean) {
-        this.options.loading = loading || false
-    }
+  setLoading(loading?: boolean) {
+    this.options.loading = loading || false
+  }
 
-    isLoading() {
-        return this.options.loading
-    }
+  isLoading() {
+    return this.options.loading
+  }
 
-    setSelected(selected?: boolean) {
-        this.options.selected = selected || false
-    }
+  setSelected(selected?: boolean) {
+    this.options.selected = selected || false
+  }
 
-    isSelected() {
-        return this.options.selected
-    }
+  isSelected() {
+    return this.options.selected
+  }
 
-    setPath(parentPath: string) {
-        this.options.path = `${parentPath}/${this.id}`
-    }
+  setPath(parentPath: string) {
+    this.options.path = `${parentPath}/${this.id}`
+  }
 
-    getPath(array?: boolean): string | string[] {
-        if (array) {
-            return this.options.path.split('/').filter((id: string) => !!id)
-        }
-        return this.options.path
+  getPath(array?: boolean): string | string[] {
+    if (array) {
+      return this.options.path.split('/').filter((id: string) => !!id)
     }
+    return this.options.path
+  }
 
-    setNodeDropContainer(dropContainer: string | boolean = false) {
-        this.options.dropContainer = dropContainer
-    }
+  setNodeDropContainer(dropContainer: string | boolean = false) {
+    this.options.dropContainer = dropContainer
+  }
 
-    getNodeDropContainer() {
-        return this.options.dropContainer
-    }
+  getNodeDropContainer() {
+    return this.options.dropContainer
+  }
 
-    getReactKey() {
-        return this.options.reactKey
-    }
+  getReactKey() {
+    return this.options.reactKey
+  }
 
-    setAsyncDataLoaded(asyncDataLoaded: boolean) {
-        this.asyncDataLoaded = asyncDataLoaded
-    }
+  setAsyncDataLoaded(asyncDataLoaded: boolean) {
+    this.asyncDataLoaded = asyncDataLoaded
+  }
 
-    isAsyncDataLoaded() {
-        return this.asyncDataLoaded
-    }
+  isAsyncDataLoaded() {
+    return this.asyncDataLoaded
+  }
 }
 
-export class TreeView {
-    hash: string
-    id: string
-    data: any[]
-    options: Options
-    enhancedData: TreeNode[]
-    flatData: Array<TreeNode | any>
-    ids: number[]
+export class TreeView<T> {
+  hash: string
+  id: string
+  data: T[]
+  options: Options
+  enhancedData: TreeNode[]
+  flatData: Array<TreeNode | any>
+  ids: number[]
 
-    static instance: TreeView
+  //static instance: TreeView;
 
-    constructor(id: string, data: any, options: Options) {
-        this.id = id
-        this.data = data
-        this.options = options
-        this.enhancedData = []
-        this.ids = []
-        if (options.enhance) {
-            this.enhance()
-        }
+  constructor(id: string, data: any, options: Options) {
+    this.id = id
+    this.data = data
+    this.options = options
+    this.enhancedData = []
+    this.ids = []
+    if (options.enhance) {
+      this.enhance()
     }
+  }
 
-    on(callback: () => void) {
-        callback()
+  on(callback: () => void) {
+    callback()
+  }
+
+  sort(tree: any[]): any[] {
+    tree.sort(this.options.sort)
+    return tree
+  }
+
+  staticEnhance(data: any[], node?: TreeNode | string | number): TreeNode[] {
+    let currentNode
+    if (node instanceof TreeNode) {
+      currentNode = node
+    } else if (node) {
+      currentNode = this.getNodeById(node)
     }
+    return this._staticEnhance(data, currentNode)
+  }
 
-    sort(tree: any[]): any[] {
-        tree.sort(this.options.sort)
-        return tree
+  enhance(data?: any[]): TreeNode[] {
+    this.enhancedData = this._enhance(data || this.data, this.options)
+    return this.enhancedData
+  }
+
+  enhanceNodes(shallow = false) {
+    if (shallow) {
+      this.enhancedData = this._staticShallowEnhance(this.enhancedData)
     }
+    this.traverse(node => {
+      this._calculateChildrenCount(node)
+    }, false)
+  }
 
-    staticEnhance(data: any[], node?: TreeNode | string | number): TreeNode[] {
-        let currentNode
-        if (node instanceof TreeNode) {
-            currentNode = node
-        } else if (node) {
-            currentNode = this.getNodeById(node)
-        }
-        return this._staticEnhance(data, currentNode)
+  flat(raw?: boolean): TreeNode[] {
+    const tree = raw ? this.data : this.enhancedData
+    this.flatData = this._flat(tree)
+    this.ids = this.flatData.map((item: TreeNode | any) => item.id)
+    return this.flatData
+  }
+
+  selectAll() {
+    this.traverse((node: TreeNode) => {
+      node.setSelected(true)
+    })
+  }
+
+  unselectAll() {
+    this.traverse((node: TreeNode) => {
+      node.setSelected(false)
+    })
+  }
+
+  getOpenedNodes(): TreeNode[] {
+    const nodes: TreeNode[] = []
+    this.traverse((node: TreeNode) => {
+      if (node.isOpened()) {
+        nodes.push(node)
+      }
+    })
+    return nodes
+  }
+
+  addChildren(parentId: number | string, data: IData[], insertType: InsertChildType = 'first') {
+    this._addChildren(this.data, parentId, data, insertType)
+  }
+
+  addSibling(nodeId: number | string, data: IData, insertType: InsertSiblingType = 'after') {
+    this._addSibling(this.data, nodeId, data, insertType)
+  }
+
+  remove(nodeId: number | string, leaveChildren?: RemoveType) {
+    this._remove(this.data, null, nodeId, leaveChildren)
+  }
+
+  traverseRaw(callback: (node: any, childIndex: number, depth: number) => void, deep = true) {
+    if (deep) {
+      this._traverseDeep(this.data, callback)
+    } else {
+      this._traverseBreadth(this.data, callback)
     }
+  }
 
-    enhance(data?: any[]): TreeNode[] {
-        this.enhancedData = this._enhance(data || this.data, this.options)
-        return this.enhancedData
+  traverse(callback: (node: TreeNode, childIndex: number, depth: number) => void, deep = true) {
+    if (deep) {
+      this._traverseDeep(this.enhancedData, callback)
+    } else {
+      this._traverseBreadth(this.enhancedData, callback)
     }
+  }
 
-    enhanceNodes(shallow = false) {
-        if (shallow) {
-            this.enhancedData = this._staticShallowEnahance(this.enhancedData)
-        }
-        this.traverse(node => {
-            this._calculateChildrenCount(node)
-        }, false)
-    }
+  getNodeById(id: number | string): TreeNode {
+    return this._getNodeById(id, this.enhancedData) as TreeNode
+  }
 
-    flat(raw?: boolean): TreeNode[] {
-        const tree = raw ? this.data : this.enhancedData
-        this.flatData = this._flat(tree)
-        this.ids = this.flatData.map((item: TreeNode | any) => item.id)
-        return this.flatData
-    }
-
-    selectAll() {
-        this.traverse((node: TreeNode) => {
-            node.setSelected(true)
-        })
-    }
-
-    unselectAll() {
-        this.traverse((node: TreeNode) => {
-            node.setSelected(false)
-        })
-    }
-
-    getOpenedNodes(): TreeNode[] {
-        const nodes: TreeNode[] = []
-        this.traverse((node: TreeNode) => {
-            if (node.isOpened()) {
-                nodes.push(node)
-            }
-        })
-        return nodes
-    }
-
-    addChildren(parentId: number | string, data: IData[], insertType: InsertChildType = 'first') {
-        this._addChildren(this.data, parentId, data, insertType)
-    }
-
-    addSibling(nodeId: number | string, data: IData, insertType: InsertSiblingType = 'after') {
-        this._addSibling(this.data, nodeId, data, insertType)
-    }
-
-    remove(nodeId: number | string, leaveChildren?: RemoveType) {
-        this._remove(this.data, null, nodeId, leaveChildren)
-    }
-
-    traverseRaw(callback: (node: any, childIndex: number, depth: number) => void, deep = true) {
-        if (deep) {
-            this._traverseDeep(this.data, callback)
-        } else {
-            this._traverseBreadth(this.data, callback)
-        }
-    }
-
-    traverse(callback: (node: TreeNode, childIndex: number, depth: number) => void, deep = true) {
-        if (deep) {
-            this._traverseDeep(this.enhancedData, callback)
-        } else {
-            this._traverseBreadth(this.enhancedData, callback)
-        }
-    }
-
-    getNodeById(id: number | string): TreeNode {
-        return this._getNodeById(id, this.enhancedData) as TreeNode
-    }
-
-    private _addChildren(data: any[], parentId: number | string, node: IData[], insertType: InsertChildType) {
-        for (let i = 0; i < data.length; i += 1) {
-            if (data[i][this.options.idKey] === parentId) {
-                switch (insertType) {
-                case 'first': {
-                    data[i][this.options.childrenKey] = [...node, ...(data[i][this.options.childrenKey] || [])]
-                    return
-                }
-                case 'last': {
-                    data[i][this.options.childrenKey] = [...(data[i][this.options.childrenKey] || []), ...node]
-                    return
-                }
-                default:
-                    return
-                }
-            } else if (data[i][this.options.childrenKey] && data[i][this.options.childrenKey].length !== 0) {
-                this._addChildren(data[i][this.options.childrenKey], parentId, node, insertType)
-                return
-            }
+  private _addChildren(data: any[], parentId: number | string, node: IData[], insertType: InsertChildType) {
+    for (let i = 0; i < data.length; i++) {
+      if (data[i][this.options.idKey] === parentId) {
+        switch (insertType) {
+          case 'first': {
+            data[i][this.options.childrenKey] = [ ...node, ...(data[i][this.options.childrenKey] || []) ]
+            return
+          }
+          case 'last': {
+            data[i][this.options.childrenKey] = [ ...(data[i][this.options.childrenKey] || []), ...node ]
+            return
+          }
+          default:
             return
         }
+      } else if (data[i][this.options.childrenKey] && data[i][this.options.childrenKey].length !== 0) {
+        this._addChildren(data[i][this.options.childrenKey], parentId, node, insertType)
+        return
+      }
+      return
     }
+  }
 
-    private _addSibling(data: any[], nodeId: number | string, node: IData, insertType: InsertSiblingType) {
-        for (let i = 0; i < data.length; i += 1) {
-            if (data[i][this.options.childrenKey] && data[i][this.options.childrenKey].length !== 0) {
-                const index = data[i][this.options.childrenKey].findIndex(
-                    (child: any) => child[this.options.idKey] === nodeId
-                )
-                if (index > -1) {
-                    data[i][this.options.childrenKey].splice(insertType === 'before' ? index : index + 1, 0, node)
-                    return
-                }
-                this._addSibling(data[i][this.options.childrenKey], nodeId, node, insertType)
-            }
-            return
+  private _addSibling(data: any[], nodeId: number | string, node: IData, insertType: InsertSiblingType) {
+    for (let i = 0; i < data.length; i += 1) {
+      if (data[i][this.options.childrenKey] && data[i][this.options.childrenKey].length !== 0) {
+        const index = data[i][this.options.childrenKey].findIndex(
+          (child: any) => child[this.options.idKey] === nodeId
+        )
+        if (index > -1) {
+          data[i][this.options.childrenKey].splice(insertType === 'before' ? index : index + 1, 0, node)
+          return
         }
+        this._addSibling(data[i][this.options.childrenKey], nodeId, node, insertType)
+      }
+      return
     }
+  }
 
-    private _flat(tree: Array<TreeNode | any>): TreeNode[] | any[] {
-        const result: TreeNode[] | any[] = []
-        tree.forEach((child: TreeNode | any) => {
-            const { children, ...childData } = child
-            result.push(childData)
-            if (children && children.length !== 0) {
-                result.push(...this._flat(children))
-            }
-        })
-        return result
-    }
+  private _flat(tree: Array<TreeNode | any>): TreeNode[] | any[] {
+    const result: TreeNode[] | any[] = []
+    tree.forEach((child: TreeNode | any) => {
+      const { children, ...childData } = child
+      result.push(childData)
+      if (children && children.length !== 0) {
+        result.push(...this._flat(children))
+      }
+    })
+    return result
+  }
 
-    private _enhance(tree: any[], options: Options, parentNode?: TreeNode): TreeNode[] {
-        const result: TreeNode[] = []
-        this.sort(tree).forEach((child: IData, index: number) => {
-            const filteredChildren: TreeNode[] =
-                child[this.options.childrenKey] && child[this.options.childrenKey].length !== 0
-                    ? child[this.options.childrenKey]
-                    : []
-            let opened = false
-            if (typeof options.defaultOpened === 'boolean') {
-                opened = options.defaultOpened
-            }
-            if (Array.isArray(options.defaultOpened)) {
-                opened = options.defaultOpened.includes(child[options.idKey])
-            }
+  private _enhance(tree: any[], options: Options, parentNode?: TreeNode): TreeNode[] {
+    const result: TreeNode[] = []
+    this.sort(tree).forEach((child: IData, index: number) => {
+      const filteredChildren: TreeNode[] =
+        child[this.options.childrenKey] && child[this.options.childrenKey].length !== 0
+          ? child[this.options.childrenKey]
+          : []
+      let opened = false
+      if (typeof options.defaultOpened === 'boolean') {
+        opened = options.defaultOpened
+      }
+      if (Array.isArray(options.defaultOpened)) {
+        opened = options.defaultOpened.includes(child[options.idKey])
+      }
 
-            const newChild: TreeNode = new TreeNode(child, {
-                opened,
-                selected: false,
-                root: !parentNode,
-                leaf: !filteredChildren,
-                hasChildren: filteredChildren.length !== 0,
-                async: !!child.getChildren,
-                parent: parentNode,
-                childrenCount: 0,
-                currentChilrenCount: 0,
-                loading: false,
-                idKey: this.options.idKey,
-                childrenKey: this.options.childrenKey,
-                path: '',
-                dropContainer: false,
-                reactKey: ''
+      const newChild: TreeNode = new TreeNode(child, {
+        opened,
+        selected: false,
+        root: !parentNode,
+        leaf: !filteredChildren,
+        hasChildren: filteredChildren.length !== 0,
+        async: !!child.getChildren,
+        parent: parentNode,
+        childrenCount: 0,
+        currentChildrenCount: 0,
+        loading: false,
+        idKey: this.options.idKey,
+        childrenKey: this.options.childrenKey,
+        path: '',
+        dropContainer: false,
+        reactKey: ''
+      })
+
+      newChild.setPath(parentNode ? parentNode.options.path : '')
+      newChild.options.reactKey = `${(newChild as unknown as Record<string, TreeNode>)[this.options.idKey]}-${newChild.getPath()}-${index}`
+
+      let children: TreeNode[] = []
+      if (filteredChildren.length !== 0) {
+        children = this._enhance(this.sort(filteredChildren), options, newChild)
+
+        if (options.filter) {
+          if (children.length !== 0) {
+            children = children.filter(currentChild => {
+              if (currentChild.getChildren().some(c => c.isOpened())) {
+                return true
+              }
+              return options.filter && options.filter(currentChild)
             })
-
-            newChild.setPath(parentNode ? parentNode.options.path : '')
-            newChild.options.reactKey = `${newChild[this.options.idKey]}-${newChild.getPath()}-${index}`
-
-            let children: TreeNode[] = []
-            if (filteredChildren.length !== 0) {
-                children = this._enhance(this.sort(filteredChildren), options, newChild)
-
-                if (options.filter) {
-                    if (children.length !== 0) {
-                        children = children.filter(currentChild => {
-                            if (currentChild.getChildren().some(c => c.isOpened())) {
-                                return true
-                            }
-                            return options.filter && options.filter(currentChild)
-                        })
-                        if (children.length !== 0) {
-                            for (let i = 0; i < children.length; i += 1) {
-                                children[i].setOpened(true)
-                                if (children[i].options.parent) {
-                                    children[i].options.parent?.setOpened(true)
-                                }
-                            }
-                        }
-                    }
+            if (children.length !== 0) {
+              for (let i = 0; i < children.length; i += 1) {
+                children[i].setOpened(true)
+                if (children[i].options.parent) {
+                  children[i].options.parent?.setOpened(true)
                 }
+              }
             }
-
-            if (newChild.options.leaf) {
-                newChild.setOpened(true)
-            }
-
-            newChild.setChildren(children)
-            this._calculateChildrenCount(newChild)
-            if (!(options.filter && newChild.options.leaf && !(options.filter && options.filter(newChild)))) {
-                result.push(newChild)
-            }
-        })
-
-        return result
-    }
-
-    private _staticEnhance(tree: any[], parentNode?: TreeNode): TreeNode[] {
-        const result: TreeNode[] = []
-        tree.forEach((child: IData, index: number) => {
-            const curentChildren = child[this.options.childrenKey] || []
-            const newChild: TreeNode = new TreeNode(child, {
-                opened: false,
-                selected: false,
-                root: !parentNode,
-                leaf: curentChildren.length === 0,
-                hasChildren: curentChildren.length !== 0,
-                async: !!child.getChildren,
-                parent: parentNode,
-                childrenCount: 0,
-                currentChilrenCount: 0,
-                loading: false,
-                idKey: this.options.idKey,
-                childrenKey: this.options.childrenKey,
-                path: '',
-                dropContainer: false,
-                reactKey: ''
-            })
-
-            newChild.setPath(parentNode ? parentNode.options.path : '')
-            newChild.options.reactKey = `${newChild[this.options.idKey]}-${newChild.getPath()}-${index}`
-
-            let children: TreeNode[] = []
-            if (curentChildren.length !== 0) {
-                children = this._staticEnhance(curentChildren, newChild)
-            }
-            newChild.setChildren(children)
-            this._calculateChildrenCount(newChild)
-            result.push(newChild)
-        })
-        return result
-    }
-
-    private _staticShallowEnahance(tree: TreeNode[], parentNode?: TreeNode): TreeNode[] {
-        const result: TreeNode[] = []
-        tree.forEach((child: TreeNode) => {
-            const curentChildren = child[this.options.childrenKey] || []
-            child.options.parent = parentNode
-            child.setPath(parentNode ? parentNode.options.path : '')
-
-            let children: TreeNode[] = []
-            if (curentChildren.length !== 0) {
-                children = this._staticShallowEnahance(curentChildren, child)
-            }
-            child.setChildren(children)
-            this._calculateChildrenCount(child)
-            result.push(child)
-        })
-        return result
-    }
-
-    private _calculateChildrenCount(child: TreeNode) {
-        const childrenCount = child.getChildren().reduce((acc: number, c: TreeNode) => {
-            if (c.isOpened()) {
-                acc += c.options.childrenCount
-                return acc
-            }
-            return acc
-        }, 0)
-
-        if (child.isOpened()) {
-            child.options.childrenCount = child.getChildren().length + childrenCount
-        } else {
-            child.options.childrenCount = child.getChildren().length
+          }
         }
-        const lastChild = child.getLastChild()
+      }
 
-        if (lastChild && lastChild.isOpened()) {
-            const globalCount = child.options.childrenCount
-            child.options.currentChilrenCount = globalCount - lastChild.options.childrenCount
-        } else {
-            child.options.currentChilrenCount = child.options.childrenCount
+      if (newChild.options.leaf) {
+        newChild.setOpened(true)
+      }
+
+      newChild.setChildren(children)
+      this._calculateChildrenCount(newChild)
+      if (!(options.filter && newChild.options.leaf && !(options.filter && options.filter(newChild)))) {
+        result.push(newChild)
+      }
+    })
+
+    return result
+  }
+
+  private _staticEnhance(tree: any[], parentNode?: TreeNode): TreeNode[] {
+    const result: TreeNode[] = []
+    tree.forEach((child: IData, index: number) => {
+      const curentChildren = child[this.options.childrenKey] || []
+      const newChild: TreeNode = new TreeNode(child, {
+        opened: false,
+        selected: false,
+        root: !parentNode,
+        leaf: curentChildren.length === 0,
+        hasChildren: curentChildren.length !== 0,
+        async: !!child.getChildren,
+        parent: parentNode,
+        childrenCount: 0,
+        currentChildrenCount: 0,
+        loading: false,
+        idKey: this.options.idKey,
+        childrenKey: this.options.childrenKey,
+        path: '',
+        dropContainer: false,
+        reactKey: ''
+      })
+
+      newChild.setPath(parentNode ? parentNode.options.path : '')
+      newChild.options.reactKey = `${(newChild as unknown as Record<string, TreeNode>)[this.options.idKey]}-${newChild.getPath()}-${index}`
+
+      let children: TreeNode[] = []
+      if (curentChildren.length !== 0) {
+        children = this._staticEnhance(curentChildren, newChild)
+      }
+      newChild.setChildren(children)
+      this._calculateChildrenCount(newChild)
+      result.push(newChild)
+    })
+    return result
+  }
+
+  private _staticShallowEnhance(tree: TreeNode[], parentNode?: TreeNode): TreeNode[] {
+    const result: TreeNode[] = []
+    tree.forEach((child: TreeNode) => {
+      const currentChildren = (child as unknown as Record<string, TreeNode[]>)[this.options.childrenKey] || []
+      child.options.parent = parentNode
+      child.setPath(parentNode ? parentNode.options.path : '')
+
+      let children: TreeNode[] = []
+      if (currentChildren.length !== 0) {
+        children = this._staticShallowEnhance(currentChildren, child)
+      }
+      child.setChildren(children)
+      this._calculateChildrenCount(child)
+      result.push(child)
+    })
+    return result
+  }
+
+  private _calculateChildrenCount(child: TreeNode) {
+    const childrenCount = child.getChildren().reduce((acc: number, c: TreeNode) => {
+      if (c.isOpened()) {
+        acc += c.options.childrenCount
+        return acc
+      }
+      return acc
+    }, 0)
+
+    if (child.isOpened()) {
+      child.options.childrenCount = child.getChildren().length + childrenCount
+    } else {
+      child.options.childrenCount = child.getChildren().length
+    }
+    const lastChild = child.getLastChild()
+
+    if (lastChild && lastChild.isOpened()) {
+      const globalCount = child.options.childrenCount
+      child.options.currentChildrenCount = globalCount - lastChild.options.childrenCount
+    } else {
+      child.options.currentChildrenCount = child.options.childrenCount
+    }
+  }
+
+  private _remove(data: any[], parentNode: any, nodeId: number | string, leaveChildren?: RemoveType) {
+    for (let i = 0; i < data.length; i += 1) {
+      if (data[i][this.options.idKey] === nodeId) {
+        const nodeToRemove = data[i]
+        data.splice(i, 1)
+        if (
+          parentNode &&
+          nodeToRemove[this.options.childrenKey] &&
+          nodeToRemove[this.options.childrenKey].length !== 0 &&
+          leaveChildren
+        ) {
+          parentNode[this.options.childrenKey] =
+            leaveChildren === 'start'
+              ? [
+                ...nodeToRemove[this.options.childrenKey],
+                ...(parentNode[this.options.childrenKey] || [])
+              ]
+              : [
+                ...(parentNode[this.options.childrenKey] || []),
+                ...nodeToRemove[this.options.childrenKey]
+              ]
         }
+        return
+      }
+      if (data[i][this.options.childrenKey] && data[i][this.options.childrenKey].length !== 0) {
+        this._remove(data[i][this.options.childrenKey], data[i], nodeId, leaveChildren)
+      }
     }
+  }
 
-    private _remove(data: any[], parentNode: any, nodeId: number | string, leaveChildren?: RemoveType) {
-        for (let i = 0; i < data.length; i += 1) {
-            if (data[i][this.options.idKey] === nodeId) {
-                const nodeToRemove = data[i]
-                data.splice(i, 1)
-                if (
-                    parentNode &&
-                    nodeToRemove[this.options.childrenKey] &&
-                    nodeToRemove[this.options.childrenKey].length !== 0 &&
-                    leaveChildren
-                ) {
-                    parentNode[this.options.childrenKey] =
-                        leaveChildren === 'start'
-                            ? [
-                                ...nodeToRemove[this.options.childrenKey],
-                                ...(parentNode[this.options.childrenKey] || [])
-                            ]
-                            : [
-                                ...(parentNode[this.options.childrenKey] || []),
-                                ...nodeToRemove[this.options.childrenKey]
-                            ]
-                }
-                return
-            }
-            if (data[i][this.options.childrenKey] && data[i][this.options.childrenKey].length !== 0) {
-                this._remove(data[i][this.options.childrenKey], data[i], nodeId, leaveChildren)
-            }
+  private _getNodeById(id: string | number, tree: any[]): any {
+    for (let i = 0; i < tree.length; i += 1) {
+      if (`${tree[i][this.options.idKey]}`.toLowerCase() === `${id}`.toLowerCase()) {
+        return tree[i]
+      }
+      if (tree[i][this.options.childrenKey] && tree[i][this.options.childrenKey].length !== 0) {
+        const node = this._getNodeById(id, tree[i][this.options.childrenKey])
+        if (node) {
+          return node
         }
+      }
     }
+    return null
+  }
 
-    private _getNodeById(id: string | number, tree: any[]): any {
-        for (let i = 0; i < tree.length; i += 1) {
-            if (`${tree[i][this.options.idKey]}`.toLowerCase() === `${id}`.toLowerCase()) {
-                return tree[i]
-            }
-            if (tree[i][this.options.childrenKey] && tree[i][this.options.childrenKey].length !== 0) {
-                const node = this._getNodeById(id, tree[i][this.options.childrenKey])
-                if (node) {
-                    return node
-                }
-            }
-        }
-        return null
-    }
+  private _traverseDeep(tree: any[], callback: (node: any, childIndex: number, depth: number) => void, depth = 0) {
+    tree.forEach((node: any, index: number) => {
+      callback(node, index, depth)
+      if (node.children && node.children.length !== 0) {
+        this._traverseDeep(node.children, callback, depth + 1)
+      }
+    })
+  }
 
-    private _traverseDeep(tree: any[], callback: (node: any, childIndex: number, depth: number) => void, depth = 0) {
-        tree.forEach((node: any, index: number) => {
-            callback(node, index, depth)
-            if (node.children && node.children.length !== 0) {
-                this._traverseDeep(node.children, callback, depth + 1)
-            }
-        })
-    }
-
-    private _traverseBreadth(tree: any[], callback: (node: any, childIndex: number, depth: number) => void, depth = 0) {
-        tree.forEach((node: any, index: number) => {
-            if (node.children && node.children.length !== 0) {
-                this._traverseBreadth(node.children, callback, depth + 1)
-            }
-            callback(node, index, depth)
-        })
-    }
+  private _traverseBreadth(tree: any[], callback: (node: any, childIndex: number, depth: number) => void, depth = 0) {
+    tree.forEach((node: any, index: number) => {
+      if (node.children && node.children.length !== 0) {
+        this._traverseBreadth(node.children, callback, depth + 1)
+      }
+      callback(node, index, depth)
+    })
+  }
 }

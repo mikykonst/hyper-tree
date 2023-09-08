@@ -179,7 +179,7 @@ const HyperTreeViewChildren: React.FC<HyperTreeNodeProps> = ({
             />
             {!(disableLines || disableVerticalLines) && (
                 <VerticalLine
-                    count={node.options.currentChilrenCount}
+                    count={node.options.currentChildrenCount}
                     depth={depth}
                     depthGap={depthGap}
                     nodeHeight={nodeHeight}
